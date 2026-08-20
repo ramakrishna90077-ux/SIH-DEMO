@@ -2,6 +2,7 @@ import { AuthRequest } from '../middleware/auth.middleware.js';
 import { Response } from 'express';
 import { attendanceServiceLayer } from '../services/attendance.service.layer.js';
 import { startAttendanceSchema, markAttendanceSchema } from '../validators/attendance.validator.js';
+import { AppError } from '../middleware/error.middleware.js';
 
 export const attendanceController = {
   async startSession(req: AuthRequest, res: Response) {
@@ -51,6 +52,10 @@ export const attendanceController = {
       const teacherId = req.user!._id.toString();
       const { sessionId } = req.params;
 
+      if (Array.isArray(sessionId)) {
+        throw new AppError('Invalid session ID', 400);
+      }
+
       const session = await attendanceServiceLayer.closeSession(teacherId, sessionId);
 
       res.status(200).json({
@@ -69,6 +74,10 @@ export const attendanceController = {
       const role = req.user!.role;
       const { sessionId } = req.params;
 
+      if (Array.isArray(sessionId)) {
+        throw new AppError('Invalid session ID', 400);
+      }
+
       const stats = await attendanceServiceLayer.getSessionStats(sessionId, userId, role);
 
       res.status(200).json({
@@ -85,6 +94,10 @@ export const attendanceController = {
       const userId = req.user!._id.toString();
       const role = req.user!.role;
       const { courseId } = req.params;
+
+      if (Array.isArray(courseId)) {
+        throw new AppError('Invalid course ID', 400);
+      }
 
       const sessions = await attendanceServiceLayer.getCourseSessions(courseId, userId, role);
 
@@ -121,6 +134,10 @@ export const attendanceController = {
       const teacherId = req.user!._id.toString();
       const { courseId } = req.params;
 
+      if (Array.isArray(courseId)) {
+        throw new AppError('Invalid course ID', 400);
+      }
+
       const analytics = await attendanceServiceLayer.getCourseAnalytics(courseId, teacherId);
 
       res.status(200).json({
@@ -135,6 +152,10 @@ export const attendanceController = {
   async getActiveSession(req: AuthRequest, res: Response) {
     try {
       const { courseId } = req.params;
+
+      if (Array.isArray(courseId)) {
+        throw new AppError('Invalid course ID', 400);
+      }
 
       const activeSession = await attendanceServiceLayer.getActiveSession(courseId);
 

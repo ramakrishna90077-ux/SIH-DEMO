@@ -2,6 +2,7 @@ import { Course } from '../models/Course.js';
 import { User } from '../models/User.js';
 import { AppError } from '../middleware/error.middleware.js';
 import mongoose from 'mongoose';
+import { ICourse } from '../models/Course.js';
 
 export const courseService = {
   async createCourse(
@@ -49,7 +50,7 @@ export const courseService = {
     return course;
   },
 
-  async updateCourse(courseId: string, teacherId: string, updates: Partial<Course>) {
+  async updateCourse(courseId: string, teacherId: string, updates: Partial<ICourse>) {
     const course = await Course.findOne({ _id: courseId, teacherId });
 
     if (!course) {

@@ -2,7 +2,8 @@ import { AuthRequest } from '../middleware/auth.middleware.js';
 import { Response } from 'express';
 import { courseService } from '../services/course.service.js';
 import { createCourseSchema, joinCourseSchema } from '../validators/course.validator.js';
-import { Course } from '../models/Course.js';
+import { ICourse } from '../models/Course.js';
+import { AppError } from '../middleware/error.middleware.js';
 
 export const courseController = {
   async createCourse(req: AuthRequest, res: Response) {
@@ -51,6 +52,11 @@ export const courseController = {
   async getCourseById(req: AuthRequest, res: Response) {
     try {
       const { id } = req.params;
+
+      if (Array.isArray(id)) {
+        throw new AppError('Invalid course ID', 400);
+      }
+
       const course = await courseService.getCourseById(id);
 
       res.status(200).json({
@@ -65,10 +71,15 @@ export const courseController = {
   async updateCourse(req: AuthRequest, res: Response) {
     try {
       const { id } = req.params;
+
+      if (Array.isArray(id)) {
+        throw new AppError('Invalid course ID', 400);
+      }
+
       const teacherId = req.user!._id.toString();
       const { name, code, description } = req.body;
 
-      const updates: Partial<Course> = {};
+      const updates: Partial<ICourse> = {};
       if (name) updates.name = name;
       if (code) updates.code = code;
       if (description !== undefined) updates.description = description;
@@ -88,6 +99,11 @@ export const courseController = {
   async deleteCourse(req: AuthRequest, res: Response) {
     try {
       const { id } = req.params;
+
+      if (Array.isArray(id)) {
+        throw new AppError('Invalid course ID', 400);
+      }
+
       const teacherId = req.user!._id.toString();
 
       await courseService.deleteCourse(id, teacherId);
@@ -121,6 +137,14 @@ export const courseController = {
   async removeStudent(req: AuthRequest, res: Response) {
     try {
       const { courseId, studentId } = req.params;
+
+      if (Array.isArray(courseId)) {
+        throw new AppError('Invalid course ID', 400);
+      }
+      if (Array.isArray(studentId)) {
+        throw new AppError('Invalid student ID', 400);
+      }
+
       const teacherId = req.user!._id.toString();
 
       const course = await courseService.removeStudent(courseId, teacherId, studentId);
@@ -129,3 +153,9 @@ export const courseController = {
         success: true,
         message: 'Student removed successfully',
         data: course,
+      });
+    } catch (error: any) {
+      throw error;
+    }
+  },
+};

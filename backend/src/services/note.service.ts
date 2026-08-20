@@ -1,6 +1,7 @@
 import { Note } from '../models/Note.js';
 import { Course } from '../models/Course.js';
 import { AppError } from '../middleware/error.middleware.js';
+import { INote } from '../models/Note.js';
 
 export const noteService = {
   async createNote(
@@ -88,7 +89,7 @@ export const noteService = {
     return note;
   },
 
-  async updateNote(noteId: string, teacherId: string, updates: Partial<Note>) {
+  async updateNote(noteId: string, teacherId: string, updates: Partial<INote>) {
     const note = await Note.findOne({ _id: noteId, teacherId });
 
     if (!note) {
