@@ -8,7 +8,7 @@ export const validateRequest = (schema: any) => {
       next();
     } catch (error) {
       if (error instanceof ZodError) {
-        const messages = error.errors.map((e) => e.message).join(', ');
+        const messages = error.issues.map((e) => e.message).join(', ');
         res.status(400).json({
           success: false,
           message: messages,

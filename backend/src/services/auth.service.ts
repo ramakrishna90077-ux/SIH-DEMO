@@ -75,7 +75,7 @@ export const authService = {
 
   generateToken(userId: string): string {
     return jwt.sign({ userId }, config.jwtSecret, {
-      expiresIn: config.jwtExpiresIn,
-    });
+      expiresIn: config.jwtExpiresIn as string,
+    }) as string;
   },
 };
