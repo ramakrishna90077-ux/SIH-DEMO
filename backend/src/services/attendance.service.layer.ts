@@ -99,8 +99,14 @@ export const attendanceServiceLayer = {
     return students.map((student) => { const present = attendanceRecords.filter((record) => record.studentId.toString() === student._id.toString()).length; const total = sessions.length; return { id: student._id, name: student.name, email: student.email, rollNumber: student.rollNumber, present, total, percentage: total ? Number(((present / total) * 100).toFixed(2)) : 0 }; });
   },
 
-  async getActiveSession(courseId: string) {
+  async getActiveSession(courseId: string, userId: string, role: 'student' | 'teacher') {
     assertId(courseId);
+    const course = await Course.findById(courseId).select('teacherId students');
+    if (!course) throw new AppError('Course not found', 404);
+    const authorized = role === 'teacher'
+      ? course.teacherId.toString() === userId
+      : course.students.some((student) => student.toString() === userId);
+    if (!authorized) throw new AppError('Course not found or unauthorized', 404);
     return AttendanceSession.findOne({ courseId, status: 'active', expiresAt: { $gt: new Date() } }).select('-code');
   },
 };

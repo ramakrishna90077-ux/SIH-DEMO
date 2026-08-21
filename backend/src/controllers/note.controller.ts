@@ -24,7 +24,7 @@ export const noteController = {
   },
 
   async get(req: AuthRequest, res: Response) {
-    const note = await noteService.getNoteById(id(req.params.id));
+    const note = await noteService.getNoteById(id(req.params.id), req.user!._id.toString(), req.user!.role);
     res.json({ success: true, data: note });
   },
 
