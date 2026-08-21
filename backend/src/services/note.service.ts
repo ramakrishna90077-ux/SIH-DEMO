@@ -18,12 +18,22 @@ export const noteService = {
     return note;
   },
 
-  async getNotes(courseId?: string, search?: string, topic?: string, tag?: string, page = 1, limit = 10) {
-    const query: any = {};
-    if (courseId) { assertId(courseId); query.courseId = courseId; }
+  async getNotes(teacherId: string, courseId?: string, search?: string, topic?: string, tag?: string, page = 1, limit = 10) {
+    const teacherCourses = await Course.find({ teacherId }).select('_id');
+    const courseIds = teacherCourses.map((course) => course._id);
+    const query: any = { courseId: { $in: courseIds } };
+
+    if (courseId) {
+      assertId(courseId);
+      if (!courseIds.some((id) => id.toString() === courseId)) {
+        throw new AppError('Course not found or unauthorized', 404);
+      }
+      query.courseId = courseId;
+    }
     if (search) query.$text = { $search: search };
     if (topic) query.topic = new RegExp(topic, 'i');
     if (tag) query.tags = tag;
+
     const skip = (page - 1) * limit;
     const [notes, total] = await Promise.all([
       Note.find(query).populate('courseId', 'name code').populate('teacherId', 'name email').sort({ createdAt: -1 }).skip(skip).limit(limit),

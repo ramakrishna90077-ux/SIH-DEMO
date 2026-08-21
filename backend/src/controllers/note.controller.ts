@@ -18,7 +18,7 @@ export const noteController = {
     const page = Math.max(1, Number(req.query.page) || 1);
     const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 10));
     const data = req.user!.role === 'teacher'
-      ? await noteService.getNotes(courseId, search, topic, undefined, page, limit)
+      ? await noteService.getNotes(userId, courseId, search, topic, undefined, page, limit)
       : { notes: await noteService.getNotesByStudent(userId, courseId), pagination: undefined };
     res.json({ success: true, data });
   },
