@@ -4,167 +4,49 @@ import { attendanceServiceLayer } from '../services/attendance.service.layer.js'
 import { startAttendanceSchema, markAttendanceSchema } from '../validators/attendance.validator.js';
 import { AppError } from '../middleware/error.middleware.js';
 
+const param = (value: string | string[] | undefined) => {
+  if (!value || Array.isArray(value)) throw new AppError('Invalid resource ID', 400);
+  return value;
+};
+
 export const attendanceController = {
   async startSession(req: AuthRequest, res: Response) {
-    try {
-      const validatedData = startAttendanceSchema.parse(req.body);
-      const teacherId = req.user!._id.toString();
-
-      const result = await attendanceServiceLayer.startSession(
-        teacherId,
-        validatedData.courseId,
-        validatedData.durationMinutes
-      );
-
-      res.status(201).json({
-        success: true,
-        message: 'Attendance session started',
-        data: result,
-      });
-    } catch (error: any) {
-      throw error;
-    }
+    const data = startAttendanceSchema.parse(req.body);
+    const result = await attendanceServiceLayer.startSession(req.user!._id.toString(), data.courseId, data.durationMinutes);
+    res.status(201).json({ success: true, message: 'Attendance session started', data: result });
   },
-
   async markAttendance(req: AuthRequest, res: Response) {
-    try {
-      const studentId = req.user!._id.toString();
-      const { sessionId, code } = markAttendanceSchema.parse(req.body);
-
-      const attendance = await attendanceServiceLayer.markAttendance(
-        studentId,
-        sessionId,
-        code
-      );
-
-      res.status(200).json({
-        success: true,
-        message: 'Attendance marked successfully',
-        data: attendance,
-      });
-    } catch (error: any) {
-      throw error;
-    }
+    const { sessionId, code } = markAttendanceSchema.parse(req.body);
+    const attendance = await attendanceServiceLayer.markAttendance(req.user!._id.toString(), sessionId, code);
+    res.json({ success: true, message: 'Attendance marked successfully', data: attendance });
   },
-
   async closeSession(req: AuthRequest, res: Response) {
-    try {
-      const teacherId = req.user!._id.toString();
-      const { sessionId } = req.params;
-
-      if (Array.isArray(sessionId)) {
-        throw new AppError('Invalid session ID', 400);
-      }
-
-      const session = await attendanceServiceLayer.closeSession(teacherId, sessionId);
-
-      res.status(200).json({
-        success: true,
-        message: 'Attendance session closed',
-        data: session,
-      });
-    } catch (error: any) {
-      throw error;
-    }
+    const session = await attendanceServiceLayer.closeSession(req.user!._id.toString(), param(req.params.sessionId));
+    res.json({ success: true, data: session });
   },
-
   async getSessionStats(req: AuthRequest, res: Response) {
-    try {
-      const userId = req.user!._id.toString();
-      const role = req.user!.role;
-      const { sessionId } = req.params;
-
-      if (Array.isArray(sessionId)) {
-        throw new AppError('Invalid session ID', 400);
-      }
-
-      const stats = await attendanceServiceLayer.getSessionStats(sessionId, userId, role);
-
-      res.status(200).json({
-        success: true,
-        data: stats,
-      });
-    } catch (error: any) {
-      throw error;
-    }
+    const stats = await attendanceServiceLayer.getSessionStats(param(req.params.sessionId), req.user!._id.toString(), req.user!.role);
+    res.json({ success: true, data: stats });
   },
-
   async getCourseSessions(req: AuthRequest, res: Response) {
-    try {
-      const userId = req.user!._id.toString();
-      const role = req.user!.role;
-      const { courseId } = req.params;
-
-      if (Array.isArray(courseId)) {
-        throw new AppError('Invalid course ID', 400);
-      }
-
-      const sessions = await attendanceServiceLayer.getCourseSessions(courseId, userId, role);
-
-      res.status(200).json({
-        success: true,
-        data: sessions,
-      });
-    } catch (error: any) {
-      throw error;
-    }
+    const sessions = await attendanceServiceLayer.getCourseSessions(param(req.params.courseId), req.user!._id.toString(), req.user!.role);
+    res.json({ success: true, data: sessions });
   },
-
   async getStudentAttendance(req: AuthRequest, res: Response) {
-    try {
-      const studentId = req.user!._id.toString();
-      const { courseId } = req.query;
-
-      const records = await attendanceServiceLayer.getStudentAttendance(
-        studentId,
-        courseId as string | undefined
-      );
-
-      res.status(200).json({
-        success: true,
-        data: records,
-      });
-    } catch (error: any) {
-      throw error;
-    }
+    const courseId = typeof req.query.courseId === 'string' ? req.query.courseId : undefined;
+    const records = await attendanceServiceLayer.getStudentAttendance(req.user!._id.toString(), courseId);
+    res.json({ success: true, data: records });
   },
-
+  async getStudentAnalytics(req: AuthRequest, res: Response) {
+    const analytics = await attendanceServiceLayer.getStudentAnalytics(req.user!._id.toString());
+    res.json({ success: true, data: analytics });
+  },
   async getCourseAnalytics(req: AuthRequest, res: Response) {
-    try {
-      const teacherId = req.user!._id.toString();
-      const { courseId } = req.params;
-
-      if (Array.isArray(courseId)) {
-        throw new AppError('Invalid course ID', 400);
-      }
-
-      const analytics = await attendanceServiceLayer.getCourseAnalytics(courseId, teacherId);
-
-      res.status(200).json({
-        success: true,
-        data: analytics,
-      });
-    } catch (error: any) {
-      throw error;
-    }
+    const analytics = await attendanceServiceLayer.getCourseAnalytics(param(req.params.courseId), req.user!._id.toString());
+    res.json({ success: true, data: analytics });
   },
-
   async getActiveSession(req: AuthRequest, res: Response) {
-    try {
-      const { courseId } = req.params;
-
-      if (Array.isArray(courseId)) {
-        throw new AppError('Invalid course ID', 400);
-      }
-
-      const activeSession = await attendanceServiceLayer.getActiveSession(courseId);
-
-      res.status(200).json({
-        success: true,
-        data: activeSession,
-      });
-    } catch (error: any) {
-      throw error;
-    }
+    const activeSession = await attendanceServiceLayer.getActiveSession(param(req.params.courseId));
+    res.json({ success: true, data: activeSession });
   },
 };
