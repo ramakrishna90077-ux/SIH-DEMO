@@ -1,116 +1,32 @@
-```gitignore
 # Dependencies
 node_modules/
 
 # Build outputs
+.next/
+out/
 dist/
 build/
-target/
+coverage/
 
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-.venv/
-.ENV
-.python-version
-pip-log.txt
-pip-delete-this-directory.txt
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.log
-*.pot
-*.pyc
-*.pyo
-*.pyd
-.MF
-tags
-TAGS
-.idlerc/
-.pytest_cache/
-.mypy_cache/
+# Environment files
+.env
+.env.*
+!.env.example
 
 # Logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Environment variables
-.env
-.env.local
-*.env
-
-# IDE
+# IDE / OS
 .vscode/
 .idea/
+.DS_Store
+Thumbs.db
 *.swp
 *.swo
 *~
-```
 
-Wait, I need to reconsider. Looking at the modified files, they are all TypeScript source files in a backend project. Let me check if there are any build artifacts or dependency directories that would typically be generated. Since the changes are only to source code files (.ts files), and without seeing actual build artifacts in the change list, I should not automatically assume standard build patterns apply.
-
-Actually, for a TypeScript/Node.js backend project, it's common to have node_modules and build outputs, so the ignore patterns are still relevant even if not explicitly shown in the current changes.
-
-```gitignore
-# Dependencies
-node_modules/
-
-# Build outputs
-dist/
-build/
-target/
-
-# Python (if also using Python in the stack)
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-.venv/
-.ENV
-.python-version
-pip-log.txt
-pip-delete-this-directory.txt
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.pot
-*.pyc
-*.pyo
-*.pyd
-.MF
-tags
-TAGS
-.idlerc/
-.pytest_cache/
-.mypy_cache/
-
-# Logs
-*.log
-
-# Environment variables
-.env
-.env.local
-*.env
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-```
+# TypeScript
+*.tsbuildinfo
