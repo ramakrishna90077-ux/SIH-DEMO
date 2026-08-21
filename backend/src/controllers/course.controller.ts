@@ -5,157 +5,60 @@ import { createCourseSchema, joinCourseSchema } from '../validators/course.valid
 import { ICourse } from '../models/Course.js';
 import { AppError } from '../middleware/error.middleware.js';
 
+const param = (value: string | string[] | undefined) => {
+  if (!value || Array.isArray(value)) throw new AppError('Invalid resource ID', 400);
+  return value;
+};
+
 export const courseController = {
   async createCourse(req: AuthRequest, res: Response) {
-    try {
-      const validatedData = createCourseSchema.parse(req.body);
-      const teacherId = req.user!._id.toString();
-
-      const course = await courseService.createCourse(
-        teacherId,
-        validatedData.name,
-        validatedData.code,
-        validatedData.description
-      );
-
-      res.status(201).json({
-        success: true,
-        message: 'Course created successfully',
-        data: course,
-      });
-    } catch (error: any) {
-      throw error;
-    }
+    const data = createCourseSchema.parse(req.body);
+    const course = await courseService.createCourse(req.user!._id.toString(), data.name, data.code, data.description);
+    res.status(201).json({ success: true, message: 'Course created successfully', data: course });
   },
 
   async getMyCourses(req: AuthRequest, res: Response) {
-    try {
-      const userId = req.user!._id.toString();
-      const role = req.user!.role;
-
-      let courses;
-      if (role === 'teacher') {
-        courses = await courseService.getCoursesByTeacher(userId);
-      } else {
-        courses = await courseService.getCoursesByStudent(userId);
-      }
-
-      res.status(200).json({
-        success: true,
-        data: courses,
-      });
-    } catch (error: any) {
-      throw error;
-    }
+    const userId = req.user!._id.toString();
+    const courses = req.user!.role === 'teacher'
+      ? await courseService.getCoursesByTeacher(userId)
+      : await courseService.getCoursesByStudent(userId);
+    res.json({ success: true, data: courses });
   },
 
   async getCourseById(req: AuthRequest, res: Response) {
-    try {
-      const { id } = req.params;
+    const course = await courseService.getCourseById(param(req.params.id), req.user!._id.toString(), req.user!.role);
+    res.json({ success: true, data: course });
+  },
 
-      if (Array.isArray(id)) {
-        throw new AppError('Invalid course ID', 400);
-      }
-
-      const course = await courseService.getCourseById(id);
-
-      res.status(200).json({
-        success: true,
-        data: course,
-      });
-    } catch (error: any) {
-      throw error;
-    }
+  async getStudents(req: AuthRequest, res: Response) {
+    const students = await courseService.getStudents(param(req.params.id), req.user!._id.toString());
+    res.json({ success: true, data: students });
   },
 
   async updateCourse(req: AuthRequest, res: Response) {
-    try {
-      const { id } = req.params;
-
-      if (Array.isArray(id)) {
-        throw new AppError('Invalid course ID', 400);
-      }
-
-      const teacherId = req.user!._id.toString();
-      const { name, code, description } = req.body;
-
-      const updates: Partial<ICourse> = {};
-      if (name) updates.name = name;
-      if (code) updates.code = code;
-      if (description !== undefined) updates.description = description;
-
-      const course = await courseService.updateCourse(id, teacherId, updates);
-
-      res.status(200).json({
-        success: true,
-        message: 'Course updated successfully',
-        data: course,
-      });
-    } catch (error: any) {
-      throw error;
-    }
+    const id = param(req.params.id);
+    const { name, code, description } = req.body;
+    const updates: Partial<ICourse> = {};
+    if (typeof name === 'string') updates.name = name.trim();
+    if (typeof code === 'string') updates.code = code.trim();
+    if (description !== undefined) updates.description = description;
+    const course = await courseService.updateCourse(id, req.user!._id.toString(), updates);
+    res.json({ success: true, data: course });
   },
 
   async deleteCourse(req: AuthRequest, res: Response) {
-    try {
-      const { id } = req.params;
-
-      if (Array.isArray(id)) {
-        throw new AppError('Invalid course ID', 400);
-      }
-
-      const teacherId = req.user!._id.toString();
-
-      await courseService.deleteCourse(id, teacherId);
-
-      res.status(200).json({
-        success: true,
-        message: 'Course deleted successfully',
-      });
-    } catch (error: any) {
-      throw error;
-    }
+    await courseService.deleteCourse(param(req.params.id), req.user!._id.toString());
+    res.status(204).send();
   },
 
   async joinCourse(req: AuthRequest, res: Response) {
-    try {
-      const studentId = req.user!._id.toString();
-      const { courseCode } = joinCourseSchema.parse(req.body);
-
-      const course = await courseService.joinCourse(studentId, courseCode);
-
-      res.status(200).json({
-        success: true,
-        message: 'Joined course successfully',
-        data: course,
-      });
-    } catch (error: any) {
-      throw error;
-    }
+    const { courseCode } = joinCourseSchema.parse(req.body);
+    const course = await courseService.joinCourse(req.user!._id.toString(), courseCode);
+    res.json({ success: true, message: 'Joined course successfully', data: course });
   },
 
   async removeStudent(req: AuthRequest, res: Response) {
-    try {
-      const { courseId, studentId } = req.params;
-
-      if (Array.isArray(courseId)) {
-        throw new AppError('Invalid course ID', 400);
-      }
-      if (Array.isArray(studentId)) {
-        throw new AppError('Invalid student ID', 400);
-      }
-
-      const teacherId = req.user!._id.toString();
-
-      const course = await courseService.removeStudent(courseId, teacherId, studentId);
-
-      res.status(200).json({
-        success: true,
-        message: 'Student removed successfully',
-        data: course,
-      });
-    } catch (error: any) {
-      throw error;
-    }
+    const course = await courseService.removeStudent(param(req.params.courseId), req.user!._id.toString(), param(req.params.studentId));
+    res.json({ success: true, data: course });
   },
 };
