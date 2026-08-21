@@ -6,13 +6,11 @@ import { RegisterInput, LoginInput } from '../validators/auth.validator.js';
 
 export const authService = {
   async register(input: RegisterInput) {
-    // Check if user already exists
     const existingUser = await User.findOne({ email: input.email });
     if (existingUser) {
       throw new AppError('Email already registered', 409);
     }
 
-    // If student, check roll number uniqueness
     if (input.role === 'student' && input.rollNumber) {
       const existingRoll = await User.findOne({ rollNumber: input.rollNumber });
       if (existingRoll) {
@@ -20,18 +18,16 @@ export const authService = {
       }
     }
 
-    // Create user - password will be hashed by pre-save hook
     const user = new User({
       name: input.name,
       email: input.email,
-      passwordHash: input.password, // Will be hashed in pre-save hook
+      passwordHash: input.password,
       role: input.role,
       rollNumber: input.rollNumber,
     });
 
     await user.save();
 
-    // Generate token
     const token = this.generateToken(user._id.toString());
 
     return {
@@ -75,7 +71,7 @@ export const authService = {
 
   generateToken(userId: string): string {
     return jwt.sign({ userId }, config.jwtSecret, {
-      expiresIn: config.jwtExpiresIn as string,
-    }) as string;
+      expiresIn: config.jwtExpiresIn as jwt.SignOptions['expiresIn'],
+    });
   },
 };
