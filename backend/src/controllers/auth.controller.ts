@@ -3,7 +3,6 @@ import { Response } from 'express';
 import { authService } from '../services/auth.service.js';
 import { registerSchema, loginSchema } from '../validators/auth.validator.js';
 import { AppError } from '../middleware/error.middleware.js';
-import { config } from '../config/index.js';
 
 export const authController = {
   async register(req: AuthRequest, res: Response) {
@@ -21,18 +20,13 @@ export const authController = {
     res.status(200).json({ success: true, message: 'Login successful', data: result });
   },
 
+  async logout(_req: AuthRequest, res: Response) {
+    res.status(204).send();
+  },
+
   async getMe(req: AuthRequest, res: Response) {
-    res.status(200).json({
-      success: true,
-      data: {
-        user: {
-          id: req.user?._id,
-          name: req.user?.name,
-          email: req.user?.email,
-          role: req.user?.role,
-          rollNumber: req.user?.rollNumber,
-        },
-      },
-    });
+    res.status(200).json({ success: true, data: {
+      user: { id: req.user?._id, name: req.user?.name, email: req.user?.email, role: req.user?.role, rollNumber: req.user?.rollNumber },
+    }});
   },
 };
