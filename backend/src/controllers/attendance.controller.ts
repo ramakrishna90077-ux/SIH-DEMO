@@ -46,7 +46,7 @@ export const attendanceController = {
     res.json({ success: true, data: analytics });
   },
   async getActiveSession(req: AuthRequest, res: Response) {
-    const activeSession = await attendanceServiceLayer.getActiveSession(param(req.params.courseId));
+    const activeSession = await attendanceServiceLayer.getActiveSession(param(req.params.courseId), req.user!._id.toString(), req.user!.role);
     res.json({ success: true, data: activeSession });
   },
 };
